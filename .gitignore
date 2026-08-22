@@ -28,5 +28,12 @@ replay_pid*
 *.iml
 .vscode/
 
+# macOS
+.DS_Store
+
 # Maven
 target/
+
+# Secrets / keys - never commit these
+*.pem
+*.key
