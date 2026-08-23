@@ -3,7 +3,6 @@ package com.saarisht.eventhub.authservice.service;
 import com.saarisht.eventhub.authservice.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.security.PrivateKey;
