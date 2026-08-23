@@ -51,11 +51,23 @@ outbox pattern rather than a dual write.
 
 ### Database
 
-A single shared PostgreSQL database backs Auth/User, Event, and Booking —
+A single shared PostgreSQL instance backs Auth/User, Event, and Booking —
 these are tightly coupled and transactionally related, so splitting them
 into separate databases would only introduce distributed-transaction
 complexity without a corresponding benefit. Payment is the one genuine
-external boundary in the system.
+external boundary in the system. Each service owns its own schema within
+the shared instance (`auth`, `event`, ...) with its own Flyway migration
+history, keeping schema ownership independent even though the underlying
+database is shared.
+
+### Event catalog
+
+An event is scoped to a venue; a venue has a fixed set of physical seats
+independent of any event. Booking a seat is meaningless without saying
+*for which event*, so availability isn't tracked on the seat itself —
+creating an event snapshots the venue's seats into per-event rows (price,
+status), which is what booking, locking, and search actually operate
+against.
 
 ## Tech stack
 
@@ -70,3 +82,6 @@ external boundary in the system.
 - Virtual waiting queue for high-demand events (Redis sorted set + SSE for
   queue position, batched admission)
 - Distributed tracing / correlation IDs across services
+- Archival strategy for past events (table partitioning by event date, or
+  moving completed events' seat/booking data to cold storage, so the active
+  transactional tables stay lean at scale)
