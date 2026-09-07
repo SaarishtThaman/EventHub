@@ -1,5 +1,6 @@
 package com.saarisht.eventhub.eventservice.controller;
 
+import com.saarisht.eventhub.eventservice.dto.ConfirmSeatsRequest;
 import com.saarisht.eventhub.eventservice.dto.EventRequest;
 import com.saarisht.eventhub.eventservice.dto.EventResponse;
 import com.saarisht.eventhub.eventservice.dto.EventSeatResponse;
@@ -38,5 +39,11 @@ public class EventController {
     @GetMapping("/{id}/seats")
     public ResponseEntity<List<EventSeatResponse>> getSeatsForEvent(@PathVariable Long id) {
         return ResponseEntity.ok(eventService.getSeatsForEvent(id));
+    }
+
+    @PostMapping("/{id}/seats/confirm")
+    public ResponseEntity<Void> confirmSeats(@PathVariable Long id, @RequestBody ConfirmSeatsRequest request) {
+        eventService.confirmSeats(id, request.eventSeatIds());
+        return ResponseEntity.ok().build();
     }
 }

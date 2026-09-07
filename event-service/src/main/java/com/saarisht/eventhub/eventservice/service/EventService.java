@@ -89,8 +89,24 @@ public class EventService {
             throw new NoSuchElementException("Event not found: " + eventId);
         }
 
-        return eventSeatRepository.findByEventId(eventId).stream()
+        return eventSeatRepository.findByEventIdOrderBySeatId(eventId).stream()
                 .map(EventSeatResponse::from)
                 .toList();
+    }
+
+    /**
+     * All-or-nothing: if fewer rows are updated than seats requested, at least
+     * one seat was no longer AVAILABLE (already booked, or booked by a
+     * competing confirmation). Throwing here rolls back the whole transaction,
+     * so a partial update never gets committed — booking-service's webhook
+     * handler sees this as a single failure, not a mix of confirmed/unconfirmed
+     * seats.
+     */
+    @Transactional
+    public void confirmSeats(Long eventId, List<Long> eventSeatIds) {
+        int updated = eventSeatRepository.confirmSeats(eventId, eventSeatIds);
+        if (updated != eventSeatIds.size()) {
+            throw new IllegalStateException("One or more seats are no longer available for event: " + eventId);
+        }
     }
 }

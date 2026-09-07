@@ -24,9 +24,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Service-to-service call from booking-service confirming a
+                        // paid booking, not a logged-in user — no JWT to check. Same
+                        // known gap as booking-service's /webhooks/**: unauthenticated
+                        // for now, should be a shared secret or mTLS in production.
+                        .requestMatchers(HttpMethod.POST, "/events/*/seats/confirm").permitAll()
                         .requestMatchers(HttpMethod.GET, "/venues/**", "/events/**").permitAll()
                         .requestMatchers("/venues/**", "/events/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
